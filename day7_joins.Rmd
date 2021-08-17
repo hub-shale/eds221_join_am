@@ -1,0 +1,88 @@
+---
+title: "joins practice"
+author: "Shale"
+date: "8/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(palmerpenguins)
+```
+
+## Warmup
+
+```{r}
+penguin_ltd = penguins %>% 
+  filter(island != "Torgersen") %>% 
+  select(-sex, -year) %>% 
+  mutate(body_mass_kg = body_mass_g / 1000) %>% 
+  rename(location = island)
+
+penguin_co = penguins %>% 
+  filter(species == "Adelie") %>% 
+  drop_na(flipper_length_mm, sex) %>% 
+  group_by(sex) %>% 
+  summarise(mean_flip = mean(flipper_length_mm),
+            sd_flip = sd(flipper_length_mm),
+            sample_size = n())
+
+  
+```
+
+## Join functions
+
+```{r}
+# datapasta addins -> paste as tribble (dataframe)
+
+animals = tibble::tribble(
+  ~location,   ~species,  ~maturity,
+   "lagoon",   "bobcat",    "adult",
+    "bluff",   "coyote", "juvenile",
+    "creek",      "fox",    "adult",
+     "oaks", "squirrel", "juvenile",
+    "bluff",   "bobcat",    "adult"
+  )
+
+sites = tibble::tribble(
+  ~location,      ~full_site_name, ~jurisdiction,
+    "beach",       "Goleta Beach",     "SB City",
+   "lagoon",        "UCSB Lagoon",        "UCSB",
+    "bluff",       "Ellwood Mesa",     "SB City",
+     "oaks", "Fremont Campground",        "USFS",
+  )
+
+```
+
+```{r}
+a_s_full = full_join(animals, sites)
+# automatically joins by columns with the same name
+# a_s_full = full_join(x = animals, y = sites, by = "location")
+
+a_s_left = left_join(animals, sites)
+# left and right are functionally interchangeable, you just have to be sure which df you are inputting as x vs y.
+a_s_right = right_join(animals, sites)
+
+a_s_inner = inner_join(animals, sites, by = "location")
+```
+
+```{r}
+a_s_semi = semi_join(animals, sites)
+
+a_s_anti = anti_join(animals, sites)
+# only keeps the rows (observations) from YOUR FIRST DF (here its animals) that don't line up (have missing values in one or the other df).
+s_a_anti = anti_join(sites, animals)
+# note that this is different than above!
+
+
+# for fun:
+anti_anti = full_join(a_s_anti, s_a_anti)
+
+```
+
+
+
+
+
+
