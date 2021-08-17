@@ -1,0 +1,69 @@
+---
+title: "dates in R"
+author: "Shale"
+date: "8/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+```
+
+## dates using `lubridate`
+
+```{r}
+my_time = "03-15-1991"
+class(my_time)
+
+my_8601 = lubridate::mdy(my_time)
+class(my_8601)
+# assumes time zone UTC
+```
+
+```{r}
+t1 =  "4/6/2005" 
+mdy(t1)
+t2 = "12-june-1974"
+dmy(t2)
+t3 = 20100806 
+ymd(t3)
+
+t4 = c(20100901, 201081, 2010104)     
+ymd(t4)
+
+# fyi 2 digit year cutoff 19__ vs 20__ is 70.
+```
+
+```{r}
+sp_time = "2020-12-14 11:23PM"
+ymd_hm(sp_time)
+
+sp_time_z = with_tz(sp_time, "America/Los_Angeles")
+
+ex_time = "3/14/1591 2:14"
+with_zone = ex_time %>% 
+  mdy_hm() %>% 
+  with_tz("Australia/Sydney")
+with_zone
+
+wday(with_zone)
+```
+
+```{r}
+urchin_ct = tribble(
+  ~date, ~species, ~size_mm,
+  "10/12/20", "red", "22",
+  "10/11/20", "blue", "34",
+  "10/06/20", "pink", "23"
+)
+
+urchin_ct_ymd = urchin_ct %>% 
+  mutate(date = lubridate::mdy(date)) %>% 
+  mutate(year = year(date),
+         month = month(date))
+```
+
+
+

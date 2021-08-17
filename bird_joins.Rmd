@@ -1,0 +1,64 @@
+---
+title: "bird task"
+author: "Shale"
+date: "8/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(here)
+library(datapasta)
+```
+
+## Setup
+
+```{r}
+bird_observations = read_csv(here("data", "knb-lter-cap.256.9", "52_pp52_birds_1.csv"))
+sites = read_csv(here("data", "knb-lter-cap.256.9", "52_pp52_sites_1.csv"))
+surveys = read_csv(here("data", "knb-lter-cap.256.9", "52_pp52_surveys_1.csv"))
+taxalist = read_csv(here("data", "knb-lter-cap.256.9", "52_pp52_taxalist_1.csv"))
+
+birds_subset = bird_observations %>% 
+  filter(species_id %in% c("BHCO", "RWBL"), 
+         site_id %in% c("LI-W", "NU-C"))
+```
+
+```{r}
+left_sub = left_join(x = birds_subset, y = sites, by = "site_id")
+left_sub = left_join(x = left_sub, y = taxalist, by = "species_id")
+
+full_birds = full_join(birds_subset, sites, by = "site_id")
+inner_birds = inner_join(birds_subset, taxalist, by = "species_id")
+left_sub2 = left_join(birds_subset, taxalist, by = "species_id")
+
+```
+
+```{r}
+birds = bird_observations %>% 
+  rename(obs_notes = notes)
+
+sub2 = birds %>% 
+  full_join(taxalist, by = "species_id") %>% 
+  full_join(surveys, by = "site_id") %>% 
+  full_join(sites, by = "site_id") %>% 
+  select(survey_date, common_name, park_name, bird_count) %>% 
+  mutate(survey_month = month(survey_date)) %>% 
+  mutate(survey_month = as.factor(survey_month)) %>% 
+  relocate(survey_month, .before = common_name) %>% 
+  filter(park_name %in% c("Lindo", "Orme", "Palomino", "Sonrisa"))
+
+sub_sum = sub2 %>% 
+  drop_na(bird_count) %>% 
+  group_by(park_name, survey_month) %>% 
+  summarise(monthly_birds = sum(bird_count)) 
+```
+
+```{r}
+ggplot(data = sub2, aes(x=survey_month, y=bird_count)) +
+  geom_point(aes(color = park_name))
+labs(title = "Total Bird Observations by Park")
+```
+
